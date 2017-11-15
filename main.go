@@ -36,12 +36,12 @@ func HandlerLatest(w http.ResponseWriter, r *http.Request) {
 	rateFromDB, found := db.GetRate(date)
 
 	if(found){
-		json.NewEncoder(w).Encode(rateFromDB.Rates["NOK"])
+		json.NewEncoder(w).Encode(rateFromDB.Rates["DDK"])
 	} else {
 		if(CheckTime()){
 			rates := GetRateFromAPI()
 			db.AddRate(rates)
-			json.NewEncoder(w).Encode(rates.Rates["NOK"])
+			json.NewEncoder(w).Encode(rates.Rates["SEK"])
 		} else {
 			time := strings.Split(time.Now().AddDate(0,0,-1).String(), " ")
 			DbRate, find := db.GetRate(time[0])
