@@ -1,15 +1,16 @@
 package main
 
 import(
+	"io/ioutil"
 	"encoding/json"
 	"net/http"
-	"fmt"
-	"strconv"
+	//"fmt"
+	//"strconv"
 	"strings"
 	"time"
 	)
 
-
+var ApiURL = string("http://api.fixer.io/latest")
 
 //WebHook stores all information about webhooks
 type WebHook struct {
@@ -31,11 +32,23 @@ type Rate struct {
 //HandlerLatest handles all querys tot he bot
 func HandlerLatest(w http.ResponseWriter, r *http.Request) {
 	db := SetUpDB()
-	timeNow := time.Now()
-	
-	
+	date := GetDate()
+	rateFromDB, found := db.GetRate(date)
+
+	if(found){
+		json.NewEncoder(w).Encode(rateFromDB.Rates["NOK"])
+	} else {
+		if(CheckTime()){
+			rates := GetRateFromAPI()
+			db.AddRate(rates)
+			json.NewEncoder(w).Encode(rates.Rates["NOK"])
+		} else {
+
+		}
+	}
 }
 
+//SetUpDB does set up db
 func SetUpDB() *APIMongoDB{
 	db := APIMongoDB{
 		"mongodb://localhost",
@@ -44,6 +57,46 @@ func SetUpDB() *APIMongoDB{
 		"webHook",
 	}
 	return &db
+}
+
+//GetDate returns current date
+func GetDate() (date string){
+	timeStringParts := strings.Split(time.Now().String(), " ")
+	date = timeStringParts[0]
+	return
+}
+
+//Check time returs true if time is later than 1700CET
+func CheckTime() (isLater bool){
+	timeNow := time.Now().Hour()
+	if(timeNow > 17){
+		isLater = true
+	} else {
+		isLater = false
+	}
+	return
+}
+
+//GetRateFromAPI returns Rate with new info from api
+func GetRateFromAPI() (rate Rate){
+	response, err := http.Get(ApiURL)
+	rate = Rate{}
+
+	if(err != nil){
+
+	}else {
+		body,err := ioutil.ReadAll(response.Body)
+		if err != nil{
+			//TODO
+		}else {
+			err := json.Unmarshal(body, &rate)
+			if err != nil{
+				//TODO
+			}
+
+		}
+	}
+	return
 }
 
 func main() {
