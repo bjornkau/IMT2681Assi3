@@ -28,8 +28,8 @@ type Rate struct {
 	Date string `json:"date"`
 	Rates map[string]float64 `json:"rates"`
 }
-
-//HandlerLatest handles all querys tot he bot
+//post request Format "EUR to NOK"?
+//HandlerLatest handles all querys to the bot
 func HandlerLatest(w http.ResponseWriter, r *http.Request) {
 	db := SetUpDB()
 	date := GetDate()
@@ -43,7 +43,12 @@ func HandlerLatest(w http.ResponseWriter, r *http.Request) {
 			db.AddRate(rates)
 			json.NewEncoder(w).Encode(rates.Rates["NOK"])
 		} else {
+			time := strings.Split(time.Now().AddDate(0,0,-1).String(), " ")
+			DbRate, find := db.GetRate(time[0])
+			if (find) {
 
+				json.NewEncoder(w).Encode(DbRate.Rates["NOK"])
+			}
 		}
 	}
 }
