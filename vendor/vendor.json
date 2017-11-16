@@ -2,7 +2,7 @@
 	"comment": "",
 	"heroku":{
 	"goVersion":"go1.9.2"
-	}
+	},
 	"ignore": "test",
 	"package": [],
 	"rootPath": "github.com/heroku/assi3v2"
