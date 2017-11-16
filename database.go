@@ -11,7 +11,6 @@ type APIMongoDB struct{
 	Host string 
 	DatabaseName string
 	RatesCollectionName string
-	WebHookCollectionName string
 }
 
 //Init checks if database exists

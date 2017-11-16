@@ -9,10 +9,9 @@ import (
 //setting up the database for testing
 func setUpDB(t *testing.T) *APIMongoDB{
 	db := APIMongoDB{
-		"mongodb://localhost",
-		"testAss2DB",
-		"rates",
-		"webHook",
+		"user2:test2@ds042417.mlab.com:42417/cloudtesting",
+		"cloudtesting",
+		"fixers",
 	}
 
 	session, err := mgo.Dial(db.Host)

@@ -4,10 +4,10 @@ import(
 	"io/ioutil"
 	"encoding/json"
 	"net/http"
-	//"fmt"
 	"strconv"
 	"strings"
 	"time"
+	"os"
 	)
 
 var ApiURL = string("http://api.fixer.io/latest")
@@ -51,10 +51,9 @@ func HandlerLatest(w http.ResponseWriter, r *http.Request) {
 //SetUpDB does set up db
 func SetUpDB() *APIMongoDB{
 	db := APIMongoDB{
-		"mongodb://localhost",
-		"testAssi3DB",
-		"rates",
-		"webHook",
+		"user2:test2@ds042417.mlab.com:42417/cloudtesting",
+		"cloudtesting",
+		"fixers",
 	}
 	return &db
 }
@@ -124,8 +123,9 @@ func GetResponse(baseCurrency string, targetCurrency string) (value float64, bas
 			if (found1) {
 				value, baseEuro = ParseRate(baseCurrency, targetCurrency, DbRate)				
 			} else {
-				baseEuro = false
-				value = -1.0
+				rates := GetRateFromAPI()
+				db.AddRate(rates)
+				value, baseEuro = ParseRate(baseCurrency, targetCurrency, rates)
 			}
 		}
 	}
@@ -160,5 +160,5 @@ func CreateResp(value float64, baseEuro bool, baseCurrency string, targetCurrenc
 
 func main() {
 	http.HandleFunc("/latest/", HandlerLatest)
-	http.ListenAndServe("localhost:8080", nil)
+	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }
