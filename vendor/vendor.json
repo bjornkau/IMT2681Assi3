@@ -1,0 +1,12 @@
+{
+	"comment": "",
+	"heroku":{
+	"goVersion":"go 1.9.2",
+	"install": [
+	"./"
+	]
+	}
+	"ignore": "test",
+	"package": [],
+	"rootPath": "github.com/heroku/assi3v2"
+}
