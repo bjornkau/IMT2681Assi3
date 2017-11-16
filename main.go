@@ -8,7 +8,9 @@ import(
 	"strings"
 	"time"
 	"os"
-	)
+
+	"log"
+)
 
 var ApiURL = string("http://api.fixer.io/latest")
 
@@ -31,6 +33,7 @@ type ResponsePayload struct {
 func HandlerLatest(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		var reqBody map[string]interface{}
+		log.Println(r.Body)
 		err := json.NewDecoder(r.Body).Decode(&reqBody)
 		baseCurrency, targetCurrency := ParseInputBody(reqBody)
 		value, baseEuro := GetResponse(baseCurrency, targetCurrency)

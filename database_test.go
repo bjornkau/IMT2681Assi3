@@ -4,7 +4,26 @@ import (
 "testing"
 "gopkg.in/mgo.v2"
 //"gopkg.in/mgo.v2/bson"
+
+	//"encoding/json"
+	//"net/http"
+	//"bytes"
+	//"net/http/httptest"
+	//"fmt"
+	"log"
+	"encoding/json"
+	"net/http"
+	"bytes"
+	"net/http/httptest"
 )
+
+type Result struct {
+	Parameters map[string]string `json:"parameters"`
+}
+
+type TestInput struct {
+	Result2  Result `json:"result"`
+}
 
 //setting up the database for testing
 func setUpDB(t *testing.T) *APIMongoDB{
@@ -112,4 +131,57 @@ func TestAPIMongoDB_DeleteRate(t *testing.T){
 	if(db.CountRate() != 0){
 		t.Error("Did not delete entry")
 	}
+}
+
+func TestGetRateFromAPI(t *testing.T) {
+	rates := GetRateFromAPI()
+	if rates.Date == "" {
+		t.Error("GetRateFromAPI failed")
+	}else {
+		base := "EUR"
+		target:="NOK"
+		value, _ := ParseRate(base,target,rates)
+		if rates.Rates[target] != value{
+			t.Error("ParseRate for base EUR failed")
+		}
+		base = "NOK"
+		target = "EUR"
+		value, _ = ParseRate(base,target,rates)
+		if value != 1/rates.Rates[base]{
+			t.Error("ParseRate for target EUR failed")
+		}
+		target = "SEK"
+		value, _ = ParseRate(base,target,rates)
+		if value == 0{
+			t.Error("ParseRate for no EUR Probably didnt work")
+		}
+	}
+
+}
+
+func TestHandlerLatest(t *testing.T) {
+	testStruct := TestInput{}
+	testStruct.Result2.Parameters = make(map[string]string)
+	testStruct.Result2.Parameters["baseCurrency"] = "EUR"
+	testStruct.Result2.Parameters["targetCurrency"] = "NOK"
+	//var testTest  map[string]string
+	//testTest["target"] = "EUR"
+	body, err := json.Marshal(testStruct)
+	if err != nil || body == nil {
+		t.Error("marshalling failed")
+	} else {
+		log.Println(body)
+		req, err := http.NewRequest("POST", "/latest/", bytes.NewBuffer(body))
+		if err != nil {
+			t.Error("nw request faield")
+		} else {
+			rr := httptest.NewRecorder()
+			handler := http.HandlerFunc(HandlerLatest)
+			handler.ServeHTTP(rr, req)
+			if status := rr.Code; status != http.StatusOK {
+				t.Errorf("handler not returning 200 ", status, http.StatusOK)
+			}
+		}
+	}
+
 }
