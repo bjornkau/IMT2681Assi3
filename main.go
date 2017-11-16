@@ -5,22 +5,14 @@ import(
 	"encoding/json"
 	"net/http"
 	//"fmt"
-	//"strconv"
+	"strconv"
 	"strings"
 	"time"
 	)
 
 var ApiURL = string("http://api.fixer.io/latest")
 
-//WebHook stores all information about webhooks
-type WebHook struct {
-	HookID int `json:"hookId"`
-	WebHookURL string `json:"webhookURL"`
-	BaseCurrency string `json:"baseCurrency"`
-	TargetCurrency string `json:"targetCurrency"`
-	MinTriggerValue float64 `json:"minTriggerValue"`
-	MaxTriggerValue float64 `json:"maxTriggerValue"`
-}
+var DISCLAIMER = string("As EUR is neither the base or target for currencies, a margin of error is to be expected.")
 
 //Rate stores all information about one days rates
 type Rate struct {
@@ -28,28 +20,31 @@ type Rate struct {
 	Date string `json:"date"`
 	Rates map[string]float64 `json:"rates"`
 }
+
+type ResponsePayload struct {
+	Speech string `json:"speech"`
+	DisplayText string `json:"displayText"`
+}
+
 //post request Format "EUR to NOK"?
 //HandlerLatest handles all querys to the bot
 func HandlerLatest(w http.ResponseWriter, r *http.Request) {
-	db := SetUpDB()
-	date := GetDate()
-	rateFromDB, found := db.GetRate(date)
-
-	if(found){
-		json.NewEncoder(w).Encode(rateFromDB.Rates["DDK"])
-	} else {
-		if(CheckTime()){
-			rates := GetRateFromAPI()
-			db.AddRate(rates)
-			json.NewEncoder(w).Encode(rates.Rates["SEK"])
+	if r.Method == "POST" {
+		var reqBody map[string]interface{}
+		err := json.NewDecoder(r.Body).Decode(&reqBody)
+		baseCurrency, targetCurrency := ParseInputBody(reqBody)
+		value, baseEuro := GetResponse(baseCurrency, targetCurrency)
+		respString := CreateResp(value, baseEuro, baseCurrency, targetCurrency)
+		response := ResponsePayload{respString, respString}
+		http.Header.Add(w.Header(), "content-type", "application/json")
+		json.NewEncoder(w).Encode(response)
+		if err != nil {
+			http.Error(w, http.StatusText(500), 500)
 		} else {
-			time := strings.Split(time.Now().AddDate(0,0,-1).String(), " ")
-			DbRate, find := db.GetRate(time[0])
-			if (find) {
 
-				json.NewEncoder(w).Encode(DbRate.Rates["NOK"])
-			}
 		}
+	} else {
+		http.Error(w, http.StatusText(400), 400)
 	}
 }
 
@@ -100,6 +95,65 @@ func GetRateFromAPI() (rate Rate){
 			}
 
 		}
+	}
+	return
+}
+
+func ParseInputBody(input map[string]interface{}) (baseCurrency string, targetCurrency string){
+	result := input["result"].(map[string]interface{})
+	parameters := result["parameters"].(map[string]interface{})
+	baseCurrency = parameters["baseCurrency"].(string)
+	targetCurrency = parameters["targetCurrency"].(string)
+	return
+}
+
+func GetResponse(baseCurrency string, targetCurrency string) (value float64, baseEuro bool){
+	db := SetUpDB()
+	date := GetDate()
+	rateFromDB, found := db.GetRate(date)
+	if found {
+		value, baseEuro = ParseRate(baseCurrency, targetCurrency, rateFromDB)
+	} else {
+		if(CheckTime()){
+			rates := GetRateFromAPI()
+			db.AddRate(rates)
+			value, baseEuro = ParseRate(baseCurrency, targetCurrency, rates)
+		} else {
+			time := strings.Split(time.Now().AddDate(0,0,-1).String(), " ")
+			DbRate, found1 := db.GetRate(time[0])
+			if (found1) {
+				value, baseEuro = ParseRate(baseCurrency, targetCurrency, DbRate)				
+			} else {
+				baseEuro = false
+				value = -1.0
+			}
+		}
+	}
+	return
+}
+
+func ParseRate(baseCurrency string, targetCurrency string, rate Rate) (value float64, baseEuro bool) {
+	baseEuro = false
+	if baseCurrency == "EUR" {
+		value = rate.Rates[targetCurrency]
+		baseEuro = true
+	} else if targetCurrency == "EUR" {
+		euroToCurrency := rate.Rates[baseCurrency]
+		value = 1/euroToCurrency
+		baseEuro = true
+	} else {
+		euroToBase := rate.Rates[baseCurrency]
+		euroToTarget := rate.Rates[targetCurrency]
+		value = (1/euroToBase) * euroToTarget
+	}
+	return
+}
+
+func CreateResp(value float64, baseEuro bool, baseCurrency string, targetCurrency string) (respString string){
+	respString = "The exchange rate between " + baseCurrency + " and " + targetCurrency + "is: "
+	respString += strconv.FormatFloat(value, 'f', 4, 64) + "."
+	if !baseEuro {
+		respString += " " + DISCLAIMER
 	}
 	return
 }
