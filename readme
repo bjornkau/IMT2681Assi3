@@ -1,0 +1,17 @@
+This is NTNU IMT2681 project 3
+this is a collabortaion between the students:
+1: 470901
+2: 470916
+
+All main handling functionality is within main.go
+database calls are handled by database.go
+database_test.go contains all our tests
+
+We've borrowed parts of the docker setup from 
+the group containing Jonas J. Solsvik
+
+We made the project from scratch, with the exeption of 
+the database file, as we borrowed that from assi2
+our main handler, takes a post request from Dialogflow, 
+handles the request, by first looking up it's own database, 
+and if there are no entries, asking fixer for the current rates
