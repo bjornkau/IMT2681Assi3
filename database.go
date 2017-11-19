@@ -1,15 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-	"fmt"
 )
 
 //APIMongoDB stores the details of the DB connection.
-type APIMongoDB struct{
-	Host string 
-	DatabaseName string
+type APIMongoDB struct {
+	Host                string
+	DatabaseName        string
 	RatesCollectionName string
 }
 
@@ -69,7 +69,7 @@ func (db *APIMongoDB) GetRate(Date string) (Rate, bool) {
 }
 
 //DeleteRate takes param Rate and deletes from db, returns statusbool
-func (db *APIMongoDB) DeleteRate(r Rate) (allIsWell bool){
+func (db *APIMongoDB) DeleteRate(r Rate) (allIsWell bool) {
 	session, err := mgo.Dial(db.Host)
 	if err != nil {
 		panic(err)
@@ -78,7 +78,7 @@ func (db *APIMongoDB) DeleteRate(r Rate) (allIsWell bool){
 	allIsWell = true
 	err2 := session.DB(db.DatabaseName).C(db.RatesCollectionName).Remove(r)
 
-	if err2 != nil{
+	if err2 != nil {
 		allIsWell = false
 	}
 	return

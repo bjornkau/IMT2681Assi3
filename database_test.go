@@ -1,19 +1,19 @@
 package main
 
 import (
-"testing"
-"gopkg.in/mgo.v2"
-//"gopkg.in/mgo.v2/bson"
+	"gopkg.in/mgo.v2"
+	"testing"
+	//"gopkg.in/mgo.v2/bson"
 
 	//"encoding/json"
 	//"net/http"
 	//"bytes"
 	//"net/http/httptest"
 	//"fmt"
-	"log"
-	"encoding/json"
-	"net/http"
 	"bytes"
+	"encoding/json"
+	"log"
+	"net/http"
 	"net/http/httptest"
 )
 
@@ -22,11 +22,11 @@ type Result struct {
 }
 
 type TestInput struct {
-	Result2  Result `json:"result"`
+	Result2 Result `json:"result"`
 }
 
 //setting up the database for testing
-func setUpDB(t *testing.T) *APIMongoDB{
+func setUpDB(t *testing.T) *APIMongoDB {
 	db := APIMongoDB{
 		"user2:test2@ds042417.mlab.com:42417/cloudtesting",
 		"cloudtesting",
@@ -37,32 +37,33 @@ func setUpDB(t *testing.T) *APIMongoDB{
 	defer session.Close()
 
 	if err != nil {
-	t.Error(err)	
+		t.Error(err)
 	}
 	return &db
 }
+
 //deleting the database after testing
-func tearDownDB(t *testing.T,db *APIMongoDB){
+func tearDownDB(t *testing.T, db *APIMongoDB) {
 	session, err := mgo.Dial(db.Host)
 	if err != nil {
-	t.Error(err)		
+		t.Error(err)
 	}
 
 	err = session.DB(db.DatabaseName).DropDatabase()
-	if(err != nil) {
+	if err != nil {
 		t.Error(err)
 	}
 }
 
-func TestAPIMongoDB_AddRate(t *testing.T){
+func TestAPIMongoDB_AddRate(t *testing.T) {
 	db := setUpDB(t)
 	defer tearDownDB(t, db)
 
 	db.Init()
-	if(db.CountRate() != 0){
+	if db.CountRate() != 0 {
 		t.Error("database not properly initiated, should be empty")
 	}
-	r := Rate {}
+	r := Rate{}
 	r.Base = "EUR"
 	r.Date = "2017-10-31"
 	r.Rates = make(map[string]float64)
@@ -71,64 +72,64 @@ func TestAPIMongoDB_AddRate(t *testing.T){
 
 	_ = db.AddRate(r)
 
-	if (db.CountRate() != 1){
+	if db.CountRate() != 1 {
 		t.Error("Did not insert properly")
 	}
 }
 
-func TestAPIMongoDB_GetRate(t *testing.T){
+func TestAPIMongoDB_GetRate(t *testing.T) {
 	db := setUpDB(t)
 	defer tearDownDB(t, db)
 	db.Init()
-	if(db.CountRate() != 0){
+	if db.CountRate() != 0 {
 		t.Error("database not properly initiated, should be empty")
 	}
-	r := Rate {}
+	r := Rate{}
 	r.Base = "EUR"
 	r.Date = "2017-10-31"
 	r.Rates = make(map[string]float64)
 	r.Rates["AUD"] = 1.5018
 	r.Rates["BGN"] = 1.9558
 	_ = db.AddRate(r)
-	if (db.CountRate() != 1){
+	if db.CountRate() != 1 {
 		t.Error("Did not insert properly")
 	}
 	newRate, ok := db.GetRate(r.Date)
-	if(!ok){
+	if !ok {
 		t.Error("Couldn't find entry")
 	}
-	if(newRate.Base != r.Base || newRate.Date != r.Date){
-		if (len(newRate.Rates) != len(r.Rates)){
+	if newRate.Base != r.Base || newRate.Date != r.Date {
+		if len(newRate.Rates) != len(r.Rates) {
 			t.Error("entries does not match")
 		}
 	}
 }
 
-func TestAPIMongoDB_DeleteRate(t *testing.T){
+func TestAPIMongoDB_DeleteRate(t *testing.T) {
 	db := setUpDB(t)
 	defer tearDownDB(t, db)
 	db.Init()
-	if(db.CountRate() != 0){
+	if db.CountRate() != 0 {
 		t.Error("database not properly initiated, should be empty")
 	}
-	r := Rate {}
+	r := Rate{}
 	r.Base = "EUR"
 	r.Date = "2017-10-31"
 	r.Rates = make(map[string]float64)
 	r.Rates["AUD"] = 1.5018
 	r.Rates["BGN"] = 1.9558
 	_ = db.AddRate(r)
-	if (db.CountRate() != 1){
+	if db.CountRate() != 1 {
 		t.Error("Did not insert properly")
 	}
 	newRate, ok := db.GetRate(r.Date)
-	if(!ok){
+	if !ok {
 		t.Error("Couldn't find entry")
 	}
 
 	_ = db.DeleteRate(newRate)
 
-	if(db.CountRate() != 0){
+	if db.CountRate() != 0 {
 		t.Error("Did not delete entry")
 	}
 }
@@ -137,22 +138,22 @@ func TestGetRateFromAPI(t *testing.T) {
 	rates := GetRateFromAPI()
 	if rates.Date == "" {
 		t.Error("GetRateFromAPI failed")
-	}else {
+	} else {
 		base := "EUR"
-		target:="NOK"
-		value, _ := ParseRate(base,target,rates)
-		if rates.Rates[target] != value{
+		target := "NOK"
+		value, _ := ParseRate(base, target, rates)
+		if rates.Rates[target] != value {
 			t.Error("ParseRate for base EUR failed")
 		}
 		base = "NOK"
 		target = "EUR"
-		value, _ = ParseRate(base,target,rates)
-		if value != 1/rates.Rates[base]{
+		value, _ = ParseRate(base, target, rates)
+		if value != 1/rates.Rates[base] {
 			t.Error("ParseRate for target EUR failed")
 		}
 		target = "SEK"
-		value, _ = ParseRate(base,target,rates)
-		if value == 0{
+		value, _ = ParseRate(base, target, rates)
+		if value == 0 {
 			t.Error("ParseRate for no EUR Probably didnt work")
 		}
 	}
@@ -179,7 +180,7 @@ func TestHandlerLatest(t *testing.T) {
 			handler := http.HandlerFunc(HandlerLatest)
 			handler.ServeHTTP(rr, req)
 			if status := rr.Code; status != http.StatusOK {
-				t.Errorf("handler not returning 200 ", status, http.StatusOK)
+				t.Error("handler not returning 200 ", status, http.StatusOK)
 			}
 		}
 	}
