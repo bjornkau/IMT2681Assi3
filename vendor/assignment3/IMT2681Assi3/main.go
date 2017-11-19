@@ -163,7 +163,6 @@ func CreateResp(value float64, baseEuro bool, baseCurrency string, targetCurrenc
 }
 
 func main() {
-	log.Println("program is now running")
 	http.HandleFunc("/latest/", HandlerLatest)
 	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }

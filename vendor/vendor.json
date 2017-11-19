@@ -6,6 +6,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "/s26v1W6i7deXu9gsGWYleYcC8E=",
+			"path": "assignment3/IMT2681Assi3",
+			"revision": "b2805ba6c4d61ae53a46cbbd114c2dd263cfd7a2",
+			"revisionTime": "2017-11-19T13:56:22Z"
+		},
+		{
 			"checksumSHA1": "hAYCKgPNM+LTZhaWh8s32A0pIdQ=",
 			"path": "github.com/heroku/assi3v2",
 			"revision": "9f2c113317c4bff024c82e5732c8ebd7c07b2cc5",
@@ -42,5 +48,5 @@
 			"revisionTime": "2016-08-18T02:01:20Z"
 		}
 	],
-	"rootPath": "github.com/heroku/assi3v2"
+	"rootPath": "assignment3/IMT2681Assi3"
 }
