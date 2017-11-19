@@ -5,16 +5,13 @@ import (
 "gopkg.in/mgo.v2"
 //"gopkg.in/mgo.v2/bson"
 
-	//"encoding/json"
-	//"net/http"
-	//"bytes"
-	//"net/http/httptest"
-	//"fmt"
+
 	"log"
 	"encoding/json"
 	"net/http"
 	"bytes"
 	"net/http/httptest"
+
 )
 
 type Result struct {
@@ -28,7 +25,7 @@ type TestInput struct {
 //setting up the database for testing
 func setUpDB(t *testing.T) *APIMongoDB{
 	db := APIMongoDB{
-		"user2:test2@ds042417.mlab.com:42417/cloudtesting",
+		"mongodb://localhost:27017",
 		"cloudtesting",
 		"fixers",
 	}
@@ -41,18 +38,7 @@ func setUpDB(t *testing.T) *APIMongoDB{
 	}
 	return &db
 }
-//deleting the database after testing
-func tearDownDB(t *testing.T,db *APIMongoDB){
-	session, err := mgo.Dial(db.Host)
-	if err != nil {
-	t.Error(err)		
-	}
 
-	err = session.DB(db.DatabaseName).DropDatabase()
-	if(err != nil) {
-		t.Error(err)
-	}
-}
 
 func TestAPIMongoDB_AddRate(t *testing.T){
 	db := setUpDB(t)
@@ -164,8 +150,7 @@ func TestHandlerLatest(t *testing.T) {
 	testStruct.Result2.Parameters = make(map[string]string)
 	testStruct.Result2.Parameters["baseCurrency"] = "EUR"
 	testStruct.Result2.Parameters["targetCurrency"] = "NOK"
-	//var testTest  map[string]string
-	//testTest["target"] = "EUR"
+
 	body, err := json.Marshal(testStruct)
 	if err != nil || body == nil {
 		t.Error("marshalling failed")
@@ -184,4 +169,17 @@ func TestHandlerLatest(t *testing.T) {
 		}
 	}
 
+}
+//deleting the database after testing
+
+func tearDownDB(t *testing.T,db *APIMongoDB){
+	session, err := mgo.Dial(db.Host)
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = session.DB(db.DatabaseName).DropDatabase()
+	if err != nil {
+		t.Error(err)
+	}
 }
