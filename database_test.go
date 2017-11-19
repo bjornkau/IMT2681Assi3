@@ -4,12 +4,11 @@ import (
 	"gopkg.in/mgo.v2"
 	"testing"
 	//"gopkg.in/mgo.v2/bson"
+	"bytes"
 	"encoding/json"
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"bytes"
-
 )
 
 type Result struct {
@@ -167,9 +166,10 @@ func TestHandlerLatest(t *testing.T) {
 	}
 
 }
+
 //deleting the database after testing
 
-func tearDownDB(t *testing.T,db *APIMongoDB){
+func tearDownDB(t *testing.T, db *APIMongoDB) {
 	session, err := mgo.Dial(db.Host)
 	if err != nil {
 		t.Error(err)
